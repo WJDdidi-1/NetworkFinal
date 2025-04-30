@@ -1,0 +1,32 @@
+# config.yaml
+
+# 数据相关配置
+data:
+  # 原始 CSV 数据路径
+  path: "../result/DataResult_A.csv"
+  # 测试集占比
+  test_size: 0.3
+  # 随机种子，保证可复现
+  random_state: 42
+  # 是否按标签做 stratify
+  stratify: true
+
+# 实验相关配置
+experiment:
+  # ε 列表；使用 null 表示不加差分隐私（baseline）
+  epsilons:
+    - null
+    - 0.5
+    - 1.0
+    - 2.0
+  # 混淆矩阵中类别标签顺序
+  labels:
+    - BENIGN
+    - PortScan
+
+# 输出相关配置
+output:
+  # 所有结果输出的根目录（脚本会在此目录下创建 plots/ 和 logs/）
+  base_dir: "../result_output"
+  # 汇总 CSV 文件名
+  results_file: "results_summary.csv"

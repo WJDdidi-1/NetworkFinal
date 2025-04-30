@@ -11,3 +11,4 @@
 [With DP] Accuracy: 0.5750, Precision: 0.0000, Recall: 0.0000
 [No DP] Accuracy: 0.6613, Precision: 0.5363, Recall: 0.5262
 [No DP] Accuracy: 0.6613, Precision: 0.5363, Recall: 0.5262
+[No DP] Accuracy: 0.6612, Precision: 0.5363, Recall: 0.5262

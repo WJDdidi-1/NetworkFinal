@@ -1,97 +1,59 @@
-# NetFinal 项目仓库
+# NetworkFinal — 隐私保护下的端口扫描检测
 
-我们将在这里同步项目的所有代码文件，便于协作与备份。请务必注意操作规范，避免文件丢失或冲突。仓库内容包括源代码、运行说明，以及数据集下载链接等。
+课程项目：在 **CICIDS 风格的网络流特征**上识别 `PortScan` 与 `BENIGN`，并回答一个
+工程问题——**给特征加差分隐私噪声之后，检测能力掉多少？**
 
----
+`src/main.py` 扫一遍 ε 列表（`null` 为不加噪声的基线），每个 ε 训练一次分类器、
+出一次指标与混淆矩阵，最后把「ε → 准确率/精确率/召回率」画成图。
 
+## 流程
 
-### ✅ 本地代码说明
-
-- 所有核心逻辑代码请放在 `src/` 文件夹中。
-- 测试代码建议放在 `test/` 文件夹中。
-- 若有结果或中间文件，请统一放在 `results/` 或 `output/` 中，避免污染主目录。
-
----
-
-## 📦 数据集下载地址
-
-由于数据集较大，不直接上传至 GitHub，请手动下载：
-
-- 🔗 数据集下载链接：[点击这里下载数据集](https://www.unb.ca/cic/datasets/ids-2017.html)
-- 下载后请将其放入本地项目的 `data/` 文件夹中（若没有请手动创建）。
-
----
-
-## ⚠️ 注意事项
-
-### 1. **请不要上传数据集或 `.ipynb_checkpoints`、运行缓存等临时文件。**
-
----
-### 2. 在每次 push 前，请使用以下命令查看当前更改状态：
-   ```bash
-   git status
-   ```
-
----
-
-
-### 3. 修改代码前建议先更新远程仓库内容：
-
-```bash
-git pull origin main
+```
+result/DataResult_A.csv          流特征 + Label（BENIGN / PortScan）
+      │
+      ├─ src/cls.py              训练 + 评估（sklearn）
+      ├─ src/D_privacy.py        Laplace / Gaussian 噪声，σ 由 ε 与 δ 决定
+      └─ src/main.py             ε 扫描 → 指标 + 混淆矩阵 + 曲线
+                                 → result_plots/ 、result_output/
 ```
 
----
+`src/config.yaml` 固定了数据路径、`test_size: 0.3`、`random_state: 42`、
+`stratify: true`，以及要扫的 ε 列表（`null / 0.5 / 1.0 / …`）。`src/optimized_pipeline.py`
+是后续整理过的一版流程，`src/Network_A.ipynb`、`src/cls.ipynb` 是探索记录。
 
-### 4. 写好代码后请执行：
+## 怎么跑
 
-```bash
-git add .
-git commit -m "清晰简洁的提交信息"
-git push origin main
+```console
+$ pip install -r requirements.txt
+$ cd src
+$ python main.py --config config.yaml
 ```
 
----
+输出落在 `result_plots/`（混淆矩阵、ε 曲线）与 `result_output/`（指标表）。
+`Report/数据分析报告（简略版）.docx` 是课程报告，`result/` 里是切好的数据。
 
-### 5. 提交信息请尽量写得有意义，例如：
+## 差分隐私这一步做了什么
 
-- "修复模型训练时报错问题"
-- "添加了数据预处理模块"
+`apply_differential_privacy(df, epsilon, delta, method)` 只对**数值列**加噪：
 
----
+- Laplace：`scale = sensitivity / ε`，`sensitivity` 取 1.0（假设特征已归一化）。
+- Gaussian：`σ = sqrt(2·ln(1.25/δ)) · sensitivity / ε`。
+- 非数值列（`Label`）不进模型输入，因此不返回。
 
-## 🧰 Git 常用命令速查
+六条测试（`tests/test_privacy.py`）钉住了这部分行为：只返回数值列、形状不变、
+噪声确实改变数值、ε 越大扰动越小、Gaussian 也加噪、未知机制抛 `ValueError`。
 
-| 操作               | 命令                                      |
-|--------------------|-------------------------------------------|
-| 初始化仓库          | `git init`                                |
-| 添加文件            | `git add 文件名` 或 `git add .`          |
-| 提交更改            | `git commit -m "描述"`                    |
-| 查看状态            | `git status`                              |
-| 查看提交历史        | `git log`                                 |
-| 获取最新远程代码    | `git pull origin main`                   |
-| 推送到远程仓库      | `git push origin main`                   |
-| 撤销上次 commit     | `git commit --amend`（慎用！）            |
-
----
-
-## 建议
-
-- 每次开始写代码前，请先 `git pull` 保证本地是最新版本。
-- 每次提交前，请确认没有把数据集或不相关文件加进去。
-- 如果遇到冲突（conflict），不要慌，可以找组员一起解决。
-
----
-
-- 每人尽量不要在同一个文件里同时工作，避免冲突。
-- 若需大改动，建议拉分支：
-
-```bash
-git checkout -b your-branch-name
+```console
+$ python -m pytest -q        # 6 passed
 ```
 
-改完后合并回 `main`。
+## 限制
 
----
+- `sensitivity = 1.0` 是写死的假设，不是从数据算出来的；特征未归一化时这个假设不成立。
+- 逐特征独立加噪并不等于对「整条记录」的 ε-差分隐私，报告里应说明这一点。
+- 数据集（`result/DataResult_A.csv`）是课程给的一份切片，不能当作 CICIDS 全量结论。
+- 分类器与随机种子固定，单次运行的指标波动不大，但没有做交叉验证。
 
-如有问题可以在群里提问，我们一起改
+## 许可
+
+没有 LICENSE 文件，按默认版权处理。

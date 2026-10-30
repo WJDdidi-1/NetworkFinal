@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  tests:
+    name: Privacy step tests (Python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install what the tests need
+        run: python -m pip install --upgrade pip pandas numpy pytest
+      - name: Test the differential-privacy step
+        run: python -m pytest -q
+      - name: Every source file parses
+        run: python -m compileall -q src

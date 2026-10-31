@@ -73,4 +73,4 @@ $ python -m pytest -q        # 6 passed
 
 ## 许可
 
-没有 LICENSE 文件，按默认版权处理。
+MIT，见 [LICENSE](LICENSE)。

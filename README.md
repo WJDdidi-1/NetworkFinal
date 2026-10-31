@@ -32,6 +32,20 @@ $ python main.py --config config.yaml
 输出落在 `result_plots/`（混淆矩阵、ε 曲线）与 `result_output/`（指标表）。
 `Report/数据分析报告（简略版）.docx` 是课程报告，`result/` 里是切好的数据。
 
+## 结果
+
+ε 扫描跑完之后，`result_output/plots/` 里有三张图（数据来自 `result/DataResult_A.csv`，
+`test_size=0.3`、`random_state=42`、`stratify=True`）：
+
+| 图 | 看什么 |
+| --- | --- |
+| ![混淆矩阵](result_output/plots/confusion_matrix_grid.png) | 每个 ε 一格的混淆矩阵：噪声变大时 `PortScan` 有多少漏成 `BENIGN` |
+| ![ROC / PR](result_output/plots/combined_roc_pr.png) | 同一批 ε 的 ROC 与 PR 曲线叠在一起 |
+| ![指标表](result_output/plots/results_table.png) | ε → 准确率 / 精确率 / 召回率的原始数字 |
+
+一句话结论：不变量化之前，ε 从 `null` 降到 `0.5` 时召回率先掉——**漏报的端口扫描
+比误报更贵**，所以报告里按召回率而不是准确率选工作点。
+
 ## 差分隐私这一步做了什么
 
 `apply_differential_privacy(df, epsilon, delta, method)` 只对**数值列**加噪：

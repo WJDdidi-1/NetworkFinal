@@ -73,4 +73,4 @@ $ python -m pytest -q        # 6 passed
 
 ## 许可
 
-MIT，见 [LICENSE](LICENSE)。
+Apache-2.0，见 [LICENSE](LICENSE)。
